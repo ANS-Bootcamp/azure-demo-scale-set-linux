@@ -148,7 +148,7 @@
                   "protectedSettings": {
                     "commandToExecute": "[concat ('./', variables('script'), ' ', variables('arguments'))]"  
                   },
-                  "type": "CustomScriptExtension"
+                  "type": "CustomScript"
                 }
               }
             ]
