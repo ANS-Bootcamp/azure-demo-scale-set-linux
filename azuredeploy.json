@@ -1,0 +1,336 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmSku": {
+      "type": "string",
+      "defaultValue": "Standard_DS1_v2",
+      "metadata": {
+        "description": "Size of VMs in the VM Scale Set."
+      }
+    },
+    "vmssName": {
+      "type": "string",
+      "metadata": {
+        "description": "String used as a base for naming resources. Must be 3-61 characters in length and globally unique across Azure. A hash is prepended to this string for some resources, and resource-specific information is appended."
+      },
+      "maxLength": 61
+    },
+    "instanceCount": {
+      "type": "int",
+      "metadata": {
+        "description": "Number of VM instances (100 or less)."
+      },
+      "defaultValue": 2,
+      "maxValue": 100
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Admin username on all VMs."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password on all VMs."
+      }
+    },
+    "AzureStorageAccount": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure Storage Account Name to connect to table storage"
+      }
+    },
+    "AzureStorageAccessKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Azure Storage Account Access Key to connect to table storage"
+      }
+    }
+  },
+  "variables": {
+    "vnetName": "vnet",
+    "subnetName": "subnet",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('vnetName'))]",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
+    "publicIPAddressName": "pip",
+    "loadBalancerName": "loadBalancer",
+    "loadBalancerFrontEndName": "loadBalancerFrontEnd",
+    "loadBalancerBackEndName": "loadBalancerBackEnd",
+    "loadBalancerProbeName": "loadBalancerHttpProbe",
+    "loadBalancerNatPoolName": "loadBalancerNatPool",
+    "scriptLocation": "https://raw.githubusercontent.com/nathanguk/azure-demo-scale-set/master/scripts/azure-demo-scale-set.ps1",
+    "script": "azure-demo-scale-set.ps1",
+    "arguments": "[concat('-AZURE_STORAGE_ACCOUNT ', parameters('AzureStorageAccount'),' -AZURE_STORAGE_ACCESS_KEY ', parameters('AzureStorageAccessKey'))]"
+  },
+
+  "resources": [
+    {
+      "type": "Microsoft.Compute/virtualMachineScaleSets",
+      "name": "[parameters('vmssName')]",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2017-03-30",
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
+        "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]"
+      ],
+      "sku": {
+        "name": "[parameters('vmSku')]",
+        "capacity": "[parameters('instanceCount')]"
+      },
+      "properties": {
+        "overprovision": true,
+        "upgradePolicy": {
+          "mode": "Automatic"
+        },
+        "virtualMachineProfile": {
+          "storageProfile": {
+            "osDisk": {
+              "createOption": "FromImage",
+              "caching": "ReadWrite"
+            },
+            "imageReference": {
+              "publisher": "MicrosoftWindowsServer",
+              "offer": "WindowsServer",
+              "sku": "2016-Datacenter",
+              "version": "latest"
+            }
+          },
+          "osProfile": {
+            "computerNamePrefix": "[parameters('vmssName')]",
+            "adminUsername": "[parameters('adminUsername')]",
+            "adminPassword": "[parameters('adminPassword')]"
+          },
+          "networkProfile": {
+            "networkInterfaceConfigurations": [
+              {
+                "name": "nic",
+                "properties": {
+                  "primary": true,
+                  "ipConfigurations": [
+                    {
+                      "name": "ipconfig",
+                      "properties": {
+                        "subnet": {
+                          "id": "[variables('subnetRef')]"
+                        },
+                        "loadBalancerBackendAddressPools": [
+                          {
+                            "id": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/loadBalancers/', variables('loadBalancerName'), '/backendAddressPools/', variables('loadBalancerBackEndName'))]"
+                          }
+                        ],
+                        "loadBalancerInboundNatPools": [
+                          {
+                            "id": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/loadBalancers/', variables('loadBalancerName'), '/inboundNatPools/', variables('loadBalancerNatPoolName'))]"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "extensionProfile": {
+            "extensions": [
+              {
+                "name": "customScript",
+                "properties": {
+                  "publisher": "Microsoft.Compute",
+                  "settings": {
+                    "fileUris": [
+                      "[variables('scriptLocation')]"
+                    ]
+                  },
+                  "typeHandlerVersion": "1.9",
+                  "autoUpgradeMinorVersion": true,
+                  "protectedSettings": {
+                    "commandToExecute": "[concat ('powershell -ExecutionPolicy Unrestricted -File ', variables('script'), ' ', variables('arguments'))]"  
+                  },
+                  "type": "CustomScriptExtension"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('vnetName')]",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2017-06-01",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.0.0.0/16"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnetName')]",
+            "properties": {
+              "addressPrefix": "10.0.0.0/24"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('publicIPAddressName')]",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2017-06-01",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[toLower(parameters('vmssName'))]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/loadBalancers",
+      "name": "[variables('loadBalancerName')]",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2017-06-01",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]"
+      ],
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "[variables('loadBalancerFrontEndName')]",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "[variables('loadBalancerBackendName')]"
+          }
+        ],
+        "loadBalancingRules": [
+          {
+            "name": "roundRobinLBRule",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName')), '/frontendIPConfigurations/', variables('loadBalancerFrontEndName'))]"
+              },
+              "backendAddressPool": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName')), '/backendAddressPools/', variables('loadBalancerBackendName'))]"
+              },
+              "protocol": "Tcp",
+              "frontendPort": 80,
+              "backendPort": 80,
+              "enableFloatingIP": false,
+              "idleTimeoutInMinutes": 5,
+              "probe": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName')), '/probes/', variables('loadBalancerProbeName'))]"
+              }
+            }
+          }
+        ],
+        "probes": [
+          {
+            "name": "[variables('loadBalancerProbeName')]",
+            "properties": {
+              "protocol": "Http",
+              "port": 80,
+              "requestPath": "/health",
+              "intervalInSeconds": 5,
+              "numberOfProbes": 2
+            }
+          }
+        ],
+        "inboundNatPools": [
+          {
+            "name": "[variables('loadBalancerNatPoolName')]",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName')), '/frontendIPConfigurations/', variables('loadBalancerFrontEndName'))]"
+              },
+              "protocol": "Tcp",
+              "frontendPortRangeStart": 50000,
+              "frontendPortRangeEnd": 50019,
+              "backendPort": 3389
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Insights/autoscaleSettings",
+      "apiVersion": "2015-04-01",
+      "name": "autoscalehost",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachineScaleSets/', parameters('vmSSName'))]"
+      ],
+      "properties": {
+        "name": "autoscalehost",
+        "targetResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', parameters('vmSSName'))]",
+        "enabled": true,
+        "profiles": [
+          {
+            "name": "Profile1",
+            "capacity": {
+              "minimum": "1",
+              "maximum": "4",
+              "default": "2"
+            },
+            "rules": [
+              {
+                "metricTrigger": {
+                  "metricName": "Percentage CPU",
+                  "metricNamespace": "",
+                  "metricResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', parameters('vmSSName'))]",
+                  "timeGrain": "PT1M",
+                  "statistic": "Average",
+                  "timeWindow": "PT5M",
+                  "timeAggregation": "Average",
+                  "operator": "GreaterThan",
+                  "threshold": 50
+                },
+                "scaleAction": {
+                  "direction": "Increase",
+                  "type": "ChangeCount",
+                  "value": "1",
+                  "cooldown": "PT15M"
+                }
+              },
+              {
+                "metricTrigger": {
+                  "metricName": "Percentage CPU",
+                  "metricNamespace": "",
+                  "metricResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', parameters('vmSSName'))]",
+                  "timeGrain": "PT1M",
+                  "statistic": "Average",
+                  "timeWindow": "PT5M",
+                  "timeAggregation": "Average",
+                  "operator": "LessThan",
+                  "threshold": 30
+                },
+                "scaleAction": {
+                  "direction": "Decrease",
+                  "type": "ChangeCount",
+                  "value": "1",
+                  "cooldown": "PT15M"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "applicationUrl": {
+      "type": "string",
+      "value": "[concat('http://', reference(variables('publicIPAddressName')).dnsSettings.fqdn)]"
+    }
+  }
+}
