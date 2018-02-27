@@ -31,6 +31,6 @@ unzip "$path/master.zip" -d $path
 
 npm install -g pm2
 npm install --prefix "$path/$gitRepo"
-pm2 start "$path/$gitRepo/bin/www"
+pm2 start "$path/$gitRepo-master/bin/www"
 pm2 startup systemd
 
