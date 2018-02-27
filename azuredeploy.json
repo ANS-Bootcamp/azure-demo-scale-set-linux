@@ -240,7 +240,7 @@
             "properties": {
               "protocol": "Http",
               "port": 8080,
-              "requestPath": "/index.html",
+              "requestPath": "/health.html",
               "intervalInSeconds": 5,
               "numberOfProbes": 2
             }
