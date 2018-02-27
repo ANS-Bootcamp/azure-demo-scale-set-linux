@@ -2,8 +2,8 @@
 
 # Configure Environment Variables
 echo "port=80" >> /etc/environment
-echo $1 >> /etc/environment
-echo $2 >> /etc/environment
+echo "AZURE_STORAGE_ACCOUNT=$1" >> /etc/environment
+echo "AZURE_STORAGE_ACCESS_KEY=$2" >> /etc/environment
 
 # Configure Script Variables
 path="/ans"
@@ -11,15 +11,15 @@ gitAccount="nathanguk"
 gitRepo="azure-demo-gallery-linux"
 
 #Update Server
-apt-get -y update
-apt-get -y upgrade
+apt-get update -y
+apt-get upgrade -y
 
 # Download and install Node.JS
 curl -sL https://deb.nodesource.com/setup_8.x | bash -
-apt-get -y install nodejs
+apt-get install -y nodejs
 
 # Install Unzip
-apt-get -y install unzip
+apt-get install -y unzip
 
 # Download and unzip application files
 mkdir $path
