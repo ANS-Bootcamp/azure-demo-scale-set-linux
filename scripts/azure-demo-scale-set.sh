@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Configure Environment Variables
+echo "port=80" >> /etc/environment
 echo $1 >> /etc/environment
 echo $2 >> /etc/environment
 
