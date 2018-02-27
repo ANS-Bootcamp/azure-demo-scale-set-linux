@@ -135,15 +135,15 @@
           "extensionProfile": {
             "extensions": [
               {
-                "name": "customScript",
+                "name": "GalleryApp",
                 "properties": {
-                  "publisher": "Microsoft.Compute",
+                  "publisher": "Microsoft.Azure.Extensions",
                   "settings": {
                     "fileUris": [
                       "[variables('scriptLocation')]"
                     ]
                   },
-                  "typeHandlerVersion": "1.9",
+                  "typeHandlerVersion": "2.0",
                   "autoUpgradeMinorVersion": true,
                   "protectedSettings": {
                     "commandToExecute": "[concat ('./', variables('script'), ' ', variables('arguments'))]"  
