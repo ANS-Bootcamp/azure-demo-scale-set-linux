@@ -62,7 +62,7 @@
     "loadBalancerNatPoolName": "loadBalancerNatPool",
     "scriptLocation": "https://raw.githubusercontent.com/nathanguk/azure-demo-scale-set-linux/master/scripts/azure-demo-scale-set.sh",
     "script": "azure-demo-scale-set.sh",
-    "arguments": "[concat(' ', parameters('AzureStorageAccount'),' ', parameters('AzureStorageAccessKey'))]"
+    "arguments": "[concat(' ', parameters('AzureStorageAccount'),' ', parameters('AzureStorageAccessKey'),' ', parameters('adminUsername'))]"
   },
 
   "resources": [

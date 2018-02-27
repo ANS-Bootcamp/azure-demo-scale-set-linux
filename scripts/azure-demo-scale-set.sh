@@ -33,4 +33,4 @@ npm install -g pm2
 npm install --prefix "$path/$gitRepo-master"
 pm2 start "$path/$gitRepo-master/bin/www"
 env PATH=$PATH:/usr/bin 
-/usr/lib/node_modules/pm2/bin/pm2 startup systemd
+/usr/lib/node_modules/pm2/bin/pm2 startup systemd -u $3 --hp /home/$3
