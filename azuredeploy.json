@@ -278,7 +278,7 @@
           {
             "name": "Profile1",
             "capacity": {
-              "minimum": "1",
+              "minimum": "2",
               "maximum": "4",
               "default": "2"
             },
