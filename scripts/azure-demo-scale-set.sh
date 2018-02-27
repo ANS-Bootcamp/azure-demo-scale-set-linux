@@ -6,9 +6,9 @@ echo $1 >> /etc/environment
 echo $2 >> /etc/environment
 
 # Configure Script Variables
-path = "/ans"
-gitAccount = "nathanguk"
-gitRepo = "azure-demo-gallery-linux"
+path="/ans"
+gitAccount="nathanguk"
+gitRepo="azure-demo-gallery-linux"
 
 #Update Server
 apt-get -y update
@@ -23,14 +23,14 @@ apt-get -y install unzip
 
 # Download and unzip application files
 mkdir $path
-resourcePath = /$gitAccount/$gitRepo/archive/master.zip
-url = https://github.com$resourcePath 
+resourcePath="/$gitAccount/$gitRepo/archive/master.zip"
+url="https://github.com$resourcePath" 
 
-curl -sL $url -o /ans/master.zip
-unzip $path/master.zip -d $path
+curl -sL $url -o "/$path/master.zip"
+unzip "$path/master.zip" -d $path
 
 npm install -g pm2
-npm install --prefix $path/$gitRepo
-pm2 start $path/$gitRepo/bin/www
+npm install --prefix "$path/$gitRepo"
+pm2 start "$path/$gitRepo/bin/www"
 pm2 startup systemd
 
