@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configure Environment Variables
-echo "port=80" >> /etc/environment
+echo "PORT=80" >> /etc/environment
 echo "AZURE_STORAGE_ACCOUNT=$1" >> /etc/environment
 echo "AZURE_STORAGE_ACCESS_KEY=$2" >> /etc/environment
 
