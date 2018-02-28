@@ -225,7 +225,7 @@
               },
               "protocol": "Tcp",
               "frontendPort": 80,
-              "backendPort": 8080,
+              "backendPort": 80,
               "enableFloatingIP": false,
               "idleTimeoutInMinutes": 5,
               "probe": {
@@ -239,7 +239,7 @@
             "name": "[variables('loadBalancerProbeName')]",
             "properties": {
               "protocol": "Http",
-              "port": 8080,
+              "port": 80,
               "requestPath": "/health.html",
               "intervalInSeconds": 5,
               "numberOfProbes": 2
