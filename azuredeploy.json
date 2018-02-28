@@ -59,7 +59,8 @@
     "loadBalancerFrontEndName": "loadBalancerFrontEnd",
     "loadBalancerBackEndName": "loadBalancerBackEnd",
     "loadBalancerProbeName": "loadBalancerHttpProbe",
-    "loadBalancerNatPoolName": "loadBalancerNatPool",
+    "loadBalancerNatPoolName": "loadBalancerSshNatPool",
+    "loadBalancerNatPoolName1": "loadBalancerWebNatPool",
     "scriptLocation": "https://raw.githubusercontent.com/nathanguk/azure-demo-scale-set-linux/master/scripts/azure-demo-scale-set.sh",
     "script": "azure-demo-scale-set.sh",
     "arguments": "[concat(' ', parameters('AzureStorageAccount'),' ', parameters('AzureStorageAccessKey'),' ', parameters('adminUsername'))]"
@@ -257,6 +258,18 @@
               "frontendPortRangeStart": 50000,
               "frontendPortRangeEnd": 50019,
               "backendPort": 22
+            }
+          },
+          {
+            "name": "[variables('loadBalancerNatPoolName1')]",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName')), '/frontendIPConfigurations/', variables('loadBalancerFrontEndName'))]"
+              },
+              "protocol": "Tcp",
+              "frontendPortRangeStart": 50100,
+              "frontendPortRangeEnd": 50119,
+              "backendPort": 8080
             }
           }
         ]
