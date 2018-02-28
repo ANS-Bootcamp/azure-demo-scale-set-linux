@@ -51,4 +51,4 @@ service $service start
 (crontab -l 2>/dev/null; echo "*/5 * * * * curl -s http://127.0.0.1/200 && curl -s http://127.0.0.1/cpulow") | crontab -
 
 # Checks is CPU stress process needs loading every 1 minutes
-(crontab -l 2>/dev/null; echo "*/1 * * * * if curl -s http://127.0.0.1/cpu | head -n 3 | grep -q 'true' ; then stress-ng -c 0 -l 75 -t 60s ; fi") | crontab -
+(crontab -l 2>/dev/null; echo "*/1 * * * * if curl -s http://127.0.0.1/cpu | head -n 1 | grep -q 'true' ; then stress-ng -c 0 -l 75 -t 60s ; fi") | crontab -
