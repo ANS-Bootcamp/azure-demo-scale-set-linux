@@ -35,5 +35,3 @@ unzip "$path/master.zip" -d $path
 
 npm install --prefix "$path/$gitRepo-master"
 node "$path/$gitRepo-master/service.js"
-
-service www start
