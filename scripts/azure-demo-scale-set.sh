@@ -33,5 +33,6 @@ url="https://github.com$resourcePath"
 curl -sL $url -o "/$path/master.zip"
 unzip "$path/master.zip" -d $path
 
+npm install node-linux --prefix "$path/$gitRepo-master"
 npm install --prefix "$path/$gitRepo-master"
 node "$path/$gitRepo-master/service.js"
