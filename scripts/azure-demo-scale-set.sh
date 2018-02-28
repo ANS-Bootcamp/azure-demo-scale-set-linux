@@ -13,6 +13,7 @@ export "AZURE_STORAGE_ACCESS_KEY=$2"
 path="/ans"
 gitAccount="nathanguk"
 gitRepo="azure-demo-gallery-linux"
+service="azuredemogallery"
 
 #Update Server
 apt-get update -y
@@ -36,3 +37,5 @@ unzip "$path/master.zip" -d $path
 npm install node-linux --prefix "$path/$gitRepo-master"
 npm install --prefix "$path/$gitRepo-master"
 node "$path/$gitRepo-master/service.js"
+
+service $service start
