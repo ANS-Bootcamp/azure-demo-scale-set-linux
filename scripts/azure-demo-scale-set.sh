@@ -11,7 +11,7 @@ export "AZURE_STORAGE_ACCESS_KEY=$2"
 
 # Configure Script Variables
 path="/ans"
-gitAccount="nathanguk"
+gitAccount="ANS-Bootcamp"
 gitRepo="azure-demo-gallery-linux"
 service="azuredemogallery"
 
