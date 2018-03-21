@@ -40,8 +40,7 @@
     "scriptLocation": "https://raw.githubusercontent.com/ans-bootcamp/azure-demo-scale-set-linux/master/scripts/azure-demo-scale-set.sh",
     "script": "azure-demo-scale-set.sh",
     "storageaccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', parameters('AzureStorageAccount'))]",
-    "AzureStorageAccessKey": "[listKeys(variables('storageaccountid'),'2016-12-01').keys[0].value]",
-    "arguments": "[concat(' ', parameters('AzureStorageAccount'),' ', variables('AzureStorageAccessKey'),' ', variables('adminUsername'))]"
+    "arguments": "[concat(' ', parameters('AzureStorageAccount'),' ', listKeys(variables('storageaccountid'),'2016-12-01').keys[0].value,' ', variables('adminUsername'))]"
   },
 
   "resources": [
