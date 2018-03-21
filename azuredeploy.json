@@ -15,7 +15,7 @@
         "description": "Admin password on all VMs."
       }
     },
-    "AzureStorageAccount": {
+    "storageAccountName": {
       "type": "string",
       "metadata": {
         "description": "Existing Azure Storage Account Name to connect to table storage"
@@ -39,7 +39,7 @@
     "instanceCount": 2,
     "scriptLocation": "https://raw.githubusercontent.com/ans-bootcamp/azure-demo-scale-set-linux/master/scripts/azure-demo-scale-set.sh",
     "script": "azure-demo-scale-set.sh",
-    "storageaccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', parameters('AzureStorageAccount'))]"
+    "storageaccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]"
   },
 
   "resources": [
@@ -123,7 +123,7 @@
                   "typeHandlerVersion": "2.0",
                   "autoUpgradeMinorVersion": true,
                   "protectedSettings": {
-                    "commandToExecute": "[concat ('./', variables('script'), ' ', ' ', parameters('AzureStorageAccount'),' ', listKeys(variables('storageaccountid'),'2016-12-01').keys[0].value,' ', variables('adminUsername'))]"  
+                    "commandToExecute": "[concat ('./', variables('script'), ' ', ' ', parameters('storageAccountName'),' ', listKeys(variables('storageaccountid'),'2016-12-01').keys[0].value,' ', variables('adminUsername'))]"  
                   },
                   "type": "CustomScript"
                 }
