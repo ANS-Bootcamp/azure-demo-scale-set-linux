@@ -2,33 +2,12 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "vmSku": {
-      "type": "string",
-      "defaultValue": "Standard_DS1_v2",
-      "metadata": {
-        "description": "Size of VMs in the VM Scale Set."
-      }
-    },
-    "vmssName": {
+    "name": {
       "type": "string",
       "metadata": {
-        "description": "String used as a base for naming resources. Must be 3-61 characters in length and globally unique across Azure. A hash is prepended to this string for some resources, and resource-specific information is appended."
+        "description": "Name"
       },
-      "maxLength": 61
-    },
-    "instanceCount": {
-      "type": "int",
-      "metadata": {
-        "description": "Number of VM instances (100 or less)."
-      },
-      "defaultValue": 2,
-      "maxValue": 100
-    },
-    "adminUsername": {
-      "type": "string",
-      "metadata": {
-        "description": "Admin username on all VMs."
-      }
+      "maxLength": 10
     },
     "adminPassword": {
       "type": "securestring",
@@ -39,13 +18,7 @@
     "AzureStorageAccount": {
       "type": "string",
       "metadata": {
-        "description": "Azure Storage Account Name to connect to table storage"
-      }
-    },
-    "AzureStorageAccessKey": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Azure Storage Account Access Key to connect to table storage"
+        "description": "Existing Azure Storage Account Name to connect to table storage"
       }
     }
   },
@@ -60,15 +33,21 @@
     "loadBalancerBackEndName": "loadBalancerBackEnd",
     "loadBalancerProbeName": "loadBalancerHttpProbe",
     "loadBalancerNatPoolName": "loadBalancerSshNatPool",
+    "vmSku": "Standard_DS1_v2",
+    "vmssName": "[concat(parameters('name'), uniquestring(resourceGroup().id))]",
+    "adminUsername": "[concat('app-', parameters('name'))]",
+    "instanceCount": 2,
     "scriptLocation": "https://raw.githubusercontent.com/ans-bootcamp/azure-demo-scale-set-linux/master/scripts/azure-demo-scale-set.sh",
     "script": "azure-demo-scale-set.sh",
-    "arguments": "[concat(' ', parameters('AzureStorageAccount'),' ', parameters('AzureStorageAccessKey'),' ', parameters('adminUsername'))]"
+    "storageaccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', parameters('AzureStorageAccount'))]",
+    "AzureStorageAccessKey": "[listKeys(variables('storageaccountid'),'2016-12-01').keys[0].value]",
+    "arguments": "[concat(' ', parameters('AzureStorageAccount'),' ', variables('AzureStorageAccessKey'),' ', variables('adminUsername'))]"
   },
 
   "resources": [
     {
       "type": "Microsoft.Compute/virtualMachineScaleSets",
-      "name": "[parameters('vmssName')]",
+      "name": "[variables('vmssName')]",
       "location": "[resourceGroup().location]",
       "apiVersion": "2017-03-30",
       "dependsOn": [
@@ -76,8 +55,8 @@
         "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]"
       ],
       "sku": {
-        "name": "[parameters('vmSku')]",
-        "capacity": "[parameters('instanceCount')]"
+        "name": "[variables('vmSku')]",
+        "capacity": "[variables('instanceCount')]"
       },
       "properties": {
         "overprovision": true,
@@ -98,8 +77,8 @@
             }
           },
           "osProfile": {
-            "computerNamePrefix": "[parameters('vmssName')]",
-            "adminUsername": "[parameters('adminUsername')]",
+            "computerNamePrefix": "[parameters('name')]",
+            "adminUsername": "[variables('adminUsername')]",
             "adminPassword": "[parameters('adminPassword')]"
           },
           "networkProfile": {
@@ -185,7 +164,7 @@
       "properties": {
         "publicIPAllocationMethod": "Dynamic",
         "dnsSettings": {
-          "domainNameLabel": "[toLower(parameters('vmssName'))]"
+          "domainNameLabel": "[toLower(variables('vmssName'))]"
         }
       }
     },
@@ -268,11 +247,11 @@
       "name": "autoscalehost",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachineScaleSets/', parameters('vmSSName'))]"
+        "[concat('Microsoft.Compute/virtualMachineScaleSets/', variables('vmSSName'))]"
       ],
       "properties": {
         "name": "autoscalehost",
-        "targetResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', parameters('vmSSName'))]",
+        "targetResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', variables('vmSSName'))]",
         "enabled": true,
         "profiles": [
           {
@@ -287,7 +266,7 @@
                 "metricTrigger": {
                   "metricName": "Percentage CPU",
                   "metricNamespace": "",
-                  "metricResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', parameters('vmSSName'))]",
+                  "metricResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', variables('vmSSName'))]",
                   "timeGrain": "PT1M",
                   "statistic": "Average",
                   "timeWindow": "PT5M",
@@ -306,7 +285,7 @@
                 "metricTrigger": {
                   "metricName": "Percentage CPU",
                   "metricNamespace": "",
-                  "metricResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', parameters('vmSSName'))]",
+                  "metricResourceUri": "[concat('/subscriptions/',subscription().subscriptionId, '/resourceGroups/',  resourceGroup().name, '/providers/Microsoft.Compute/virtualMachineScaleSets/', variables('vmSSName'))]",
                   "timeGrain": "PT1M",
                   "statistic": "Average",
                   "timeWindow": "PT5M",
@@ -331,6 +310,14 @@
     "applicationUrl": {
       "type": "string",
       "value": "[concat('http://', reference(variables('publicIPAddressName')).dnsSettings.fqdn)]"
+    },
+    "adminUsername": {
+      "type": "string",
+      "value": "[variables('adminUsername')]"
+    },
+    "adminPassword": {
+      "type": "string",
+      "value": "[parameters('adminPassword')]"
     }
   }
 }
