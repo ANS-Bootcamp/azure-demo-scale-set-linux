@@ -305,15 +305,15 @@
     }
   ],
   "outputs": {
-    "applicationUrl": {
+    "galleryUrl": {
       "type": "string",
       "value": "[concat('http://', reference(variables('publicIPAddressName')).dnsSettings.fqdn)]"
     },
-    "adminUsername": {
+    "vmAdminUsername": {
       "type": "string",
       "value": "[variables('adminUsername')]"
     },
-    "adminPassword": {
+    "vmAdminPassword": {
       "type": "string",
       "value": "[parameters('adminPassword')]"
     }
