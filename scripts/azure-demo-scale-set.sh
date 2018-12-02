@@ -41,5 +41,13 @@ unzip "$path/master.zip" -d $path
 npm install node-linux --prefix "$path/$gitRepo-master"
 npm install --prefix "$path/$gitRepo-master"
 node "$path/$gitRepo-master/service.js"
+
 service $service start
+
+# Workaround for first boot issue.
+sleep 10s
+service $service stop
+sleep 10s
+service $service start
+
 
