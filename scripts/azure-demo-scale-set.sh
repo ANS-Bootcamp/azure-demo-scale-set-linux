@@ -15,6 +15,12 @@ gitAccount="ANS-Bootcamp"
 gitRepo="azure-demo-gallery-linux"
 service="azuredemogallery"
 
+#Update Server
+apt-get update -y
+apt-get upgrade -y
+
+
+
 
 
 
