@@ -17,7 +17,7 @@ service="azuredemogallery"
 
 #Update Server
 apt-get update -y
-#apt-get upgrade -y
+# apt-get upgrade -y
 
 # Download and install Node.JS
 curl -sL https://deb.nodesource.com/setup_8.x | bash -
